@@ -48,11 +48,7 @@ const TimelineProject = ({ onFinish }) => {
   const [currentMonthIndex, setCurrentMonthIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
 
-  // Removemos a função de avançar automaticamente pelos meses
-  // O usuário agora controla a navegação apenas com os botões
-
   const styles = {
-    // Estilos para o componente
     container: {
       width: "100%",
       padding: "16px",
@@ -62,19 +58,24 @@ const TimelineProject = ({ onFinish }) => {
     monthsHeader: {
       display: "flex",
       justifyContent: "space-between",
-      marginBottom: "16px",
+      marginBottom: "20px",
+      position: "relative",
     },
     monthName: {
-      fontSize: "14px",
+      fontSize: "16px",
       fontWeight: "600",
       textAlign: "center",
+      padding: "8px 16px",
+      borderRadius: "4px",
+      cursor: "pointer",
+      transition: "all 0.3s ease",
     },
     timelineContainer: {
       position: "relative",
       display: "flex",
       width: "100%",
       height: "64px",
-      marginBottom: "8px",
+      marginBottom: "30px",
     },
     timelineSection: {
       flex: 1,
@@ -82,6 +83,7 @@ const TimelineProject = ({ onFinish }) => {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
+      transition: "all 0.3s ease",
     },
     timelineArrowFirst: {
       height: "64px",
@@ -89,68 +91,99 @@ const TimelineProject = ({ onFinish }) => {
       position: "absolute",
       left: "-16px",
     },
-    mainTasksContainer: {
-      display: "flex",
-      justifyContent: "space-between",
-      marginBottom: "24px",
+    indicator: {
+      position: "absolute",
+      bottom: "-25px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      width: "20px",
+      height: "20px",
+      backgroundColor: "white",
+      border: "3px solid",
+      borderRadius: "50%",
+      zIndex: 2,
     },
-    mainTaskBox: {
-      width: "25%",
-      padding: "0 8px",
+    contentContainer: {
+      backgroundColor: "#f8f9fa",
+      borderRadius: "8px",
+      padding: "24px",
+      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+      marginBottom: "30px",
+      position: "relative",
+      transition: "all 0.5s ease",
+      opacity: isAnimating ? 0 : 1,
+    },
+    monthTag: {
+      display: "inline-block",
+      padding: "5px 15px",
+      borderRadius: "20px",
+      color: "white",
+      fontWeight: "bold",
+      fontSize: "18px",
+      marginBottom: "15px",
     },
     mainTaskTitle: {
-      fontSize: "14px",
+      fontSize: "22px",
       fontWeight: "600",
-      marginBottom: "8px",
-    },
-    activitiesContainer: {
-      display: "flex",
-    },
-    activityBox: {
-      width: "25%",
-      padding: "0 8px",
+      marginBottom: "20px",
     },
     activityList: {
       listStyle: "none",
       padding: "0",
       margin: "0",
+      fontSize: "16px",
     },
     activityItem: {
-      fontSize: "12px",
-      marginBottom: "8px",
-    },
-    editSection: {
-      marginTop: "48px",
-      paddingTop: "16px",
-      borderTop: "1px solid #e5e7eb",
-    },
-    editTitle: {
       fontSize: "16px",
-      fontWeight: "600",
-      marginBottom: "8px",
+      marginBottom: "12px",
+      display: "flex",
+      alignItems: "flex-start",
     },
-    editButton: {
+    activityBullet: {
+      minWidth: "24px",
+      height: "24px",
+      borderRadius: "50%",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: "12px",
+      color: "white",
+      fontWeight: "bold",
+    },
+    navigationButtons: {
+      display: "flex",
+      justifyContent: "center",
+      marginTop: "20px",
+    },
+    navButton: {
       backgroundColor: "#0052cc",
       color: "white",
-      padding: "4px 12px",
-      borderRadius: "4px",
-      fontSize: "14px",
       border: "none",
+      borderRadius: "4px",
+      padding: "10px 20px",
+      margin: "0 8px",
       cursor: "pointer",
+      fontSize: "16px",
+      fontWeight: "500",
+      transition: "background-color 0.3s ease",
     },
-    editNote: {
-      fontSize: "12px",
-      marginTop: "8px",
-      color: "#6b7280",
+    continueButton: {
+      backgroundColor: "#FF0000",
+      color: "white",
+      border: "none",
+      borderRadius: "4px",
+      padding: "10px 20px",
+      margin: "0 8px",
+      cursor: "pointer",
+      fontSize: "16px",
+      fontWeight: "500",
+      transition: "background-color 0.3s ease",
     },
-    fadeAnimation: {
-      opacity: isAnimating ? 0 : 1,
-      transition: "opacity 1s ease",
+    navButtonHover: {
+      backgroundColor: "#003d99",
     },
-    focusedMonth: {
-      transform: "scale(1.05)",
-      transition: "transform 0.3s ease",
-      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    continueButtonHover: {
+      backgroundColor: "#cc0000",
     },
   }
 
@@ -162,6 +195,32 @@ const TimelineProject = ({ onFinish }) => {
     return "polygon(0 0, 95% 0, 100% 50%, 95% 100%, 0 100%, 5% 50%)"
   }
 
+  // Função para mudar o mês com animação
+  const changeMonth = (newIndex) => {
+    if (newIndex !== currentMonthIndex) {
+      setIsAnimating(true)
+      setTimeout(() => {
+        setCurrentMonthIndex(newIndex)
+        setIsAnimating(false)
+      }, 300)
+    }
+  }
+
+  // Função para navegar para o mês anterior
+  const goToPreviousMonth = () => {
+    const newIndex = currentMonthIndex === 0 ? timelineData.months.length - 1 : currentMonthIndex - 1
+    changeMonth(newIndex)
+  }
+
+  // Função para navegar para o próximo mês
+  const goToNextMonth = () => {
+    const newIndex = (currentMonthIndex + 1) % timelineData.months.length
+    changeMonth(newIndex)
+  }
+
+  // Obter mês atual
+  const currentMonth = timelineData.months[currentMonthIndex]
+
   return (
     <div style={styles.container}>
       {/* Cabeçalho com os meses */}
@@ -171,9 +230,12 @@ const TimelineProject = ({ onFinish }) => {
             key={`month-${index}`}
             style={{
               ...styles.monthName,
-              color: month.color,
-              ...(currentMonthIndex === index ? styles.focusedMonth : {}),
+              color: index === currentMonthIndex ? "white" : month.color,
+              backgroundColor: index === currentMonthIndex ? month.color : "transparent",
+              transform: index === currentMonthIndex ? "scale(1.1)" : "scale(1)",
+              boxShadow: index === currentMonthIndex ? "0 4px 8px rgba(0, 0, 0, 0.15)" : "none",
             }}
+            onClick={() => changeMonth(index)}
           >
             {month.name}
           </div>
@@ -189,6 +251,8 @@ const TimelineProject = ({ onFinish }) => {
               ...styles.timelineSection,
               backgroundColor: month.color,
               clipPath: getClipPath(index),
+              height: index === currentMonthIndex ? "72px" : "64px",
+              zIndex: index === currentMonthIndex ? 2 : 1,
             }}
           >
             {index === 0 && (
@@ -199,76 +263,65 @@ const TimelineProject = ({ onFinish }) => {
                 }}
               />
             )}
+            {index === currentMonthIndex && (
+              <div
+                style={{
+                  ...styles.indicator,
+                  borderColor: month.color,
+                }}
+              />
+            )}
           </div>
         ))}
       </div>
 
-      {/* Conteúdo do mês atual com animação */}
-      <div style={styles.fadeAnimation}>
-        {/* Tarefa principal do mês atual */}
-        <div style={styles.mainTasksContainer}>
-          <div style={{ ...styles.mainTaskBox, width: "100%" }}>
-            <h3 style={{ ...styles.mainTaskTitle, color: timelineData.months[currentMonthIndex].color }}>
-              {timelineData.months[currentMonthIndex].mainTask}
-            </h3>
-          </div>
+      {/* Conteúdo do mês atual */}
+      <div style={styles.contentContainer}>
+        <div style={{ ...styles.monthTag, backgroundColor: currentMonth.color }}>
+          {currentMonth.name}
         </div>
-
-        {/* Atividades do mês atual */}
-        <div style={styles.activitiesContainer}>
-          <div style={{ ...styles.activityBox, width: "100%" }}>
-            <ul style={styles.activityList}>
-              {timelineData.months[currentMonthIndex].activities.map((activity, actIndex) => (
-                <li
-                  key={`activity-${currentMonthIndex}-${actIndex}`}
-                  style={{ ...styles.activityItem, color: timelineData.months[currentMonthIndex].color }}
-                >
-                  {activity}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+        <h2 style={{ ...styles.mainTaskTitle, color: currentMonth.color }}>
+          {currentMonth.mainTask}
+        </h2>
+        <ul style={styles.activityList}>
+          {currentMonth.activities.map((activity, actIndex) => (
+            <li key={`activity-${currentMonthIndex}-${actIndex}`} style={styles.activityItem}>
+              <div
+                style={{
+                  ...styles.activityBullet,
+                  backgroundColor: currentMonth.color,
+                }}
+              >
+                {actIndex + 1}
+              </div>
+              <div>{activity}</div>
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/* Controles de navegação manual */}
-      <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+      <div style={styles.navigationButtons}>
         <button
-          style={{
-            backgroundColor: "#0052cc",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            padding: "8px 16px",
-            margin: "0 8px",
-            cursor: "pointer",
+          style={styles.navButton}
+          onClick={goToPreviousMonth}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = styles.navButtonHover.backgroundColor
           }}
-          onClick={() => {
-            setIsAnimating(true)
-            setTimeout(() => {
-              setCurrentMonthIndex((prevIndex) => (prevIndex === 0 ? timelineData.months.length - 1 : prevIndex - 1))
-              setIsAnimating(false)
-            }, 500)
+          onMouseOut={(e) => {
+            e.currentTarget.style.backgroundColor = styles.navButton.backgroundColor
           }}
         >
           Anterior
         </button>
         <button
-          style={{
-            backgroundColor: "#0052cc",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            padding: "8px 16px",
-            margin: "0 8px",
-            cursor: "pointer",
+          style={styles.navButton}
+          onClick={goToNextMonth}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = styles.navButtonHover.backgroundColor
           }}
-          onClick={() => {
-            setIsAnimating(true)
-            setTimeout(() => {
-              setCurrentMonthIndex((prevIndex) => (prevIndex + 1) % timelineData.months.length)
-              setIsAnimating(false)
-            }, 500)
+          onMouseOut={(e) => {
+            e.currentTarget.style.backgroundColor = styles.navButton.backgroundColor
           }}
         >
           Próximo
@@ -276,16 +329,14 @@ const TimelineProject = ({ onFinish }) => {
 
         {onFinish && (
           <button
-            style={{
-              backgroundColor: "#FF0000",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              padding: "8px 16px",
-              margin: "0 8px",
-              cursor: "pointer",
-            }}
+            style={styles.continueButton}
             onClick={onFinish}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = styles.continueButtonHover.backgroundColor
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = styles.continueButton.backgroundColor
+            }}
           >
             Continuar para o Fluxograma
           </button>
