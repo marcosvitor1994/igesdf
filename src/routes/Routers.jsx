@@ -17,17 +17,20 @@ import Pneumologia from "../pages/Pneumologia"
 import ClinicaMedica from "../pages/ClinicaMedica"
 import HbHrsm from "../pages/HbHrsm"
 import Nusad from "../pages/Nusad"
-import TimelineProject from "../components/Timeline"
+import TimelinePage from "../pages/TimelinePages"
 
 const Routers = () => {
   return (
     <>
       <Routes>
-        <Route path="/" element={<PrivateRoute />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/home" element={<Home />} />
+        {/* Rota pública - apenas login */}
+        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
 
-          {/* Rotas para cada seção do fluxograma */}
+        {/* Rotas protegidas */}
+        <Route element={<PrivateRoute />}>
+          <Route path="/timeline" element={<TimelinePage />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/teleconsulta" element={<Teleconsulta />} />
           <Route path="/teleinterconsulta" element={<TeleInterconsulta />} />
           <Route path="/rounds" element={<Rounds />} />
@@ -40,9 +43,6 @@ const Routers = () => {
           <Route path="/hb-hrsm" element={<HbHrsm />} />
           <Route path="/nusad" element={<Nusad />} />
         </Route>
-
-        <Route path="/login" element={<Login />} />
-        <Route path="/timeline" element={<TimelineProject />} />
       </Routes>
     </>
   )
