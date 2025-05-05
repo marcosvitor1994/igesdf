@@ -2,7 +2,7 @@
 
 import { useCallback } from "react"
 import { useNavigate } from "react-router-dom"
-import ReactFlow, { Controls, Background, useNodesState, useEdgesState, Panel } from "reactflow"
+import ReactFlow, { Controls, Background, useNodesState, useEdgesState } from "reactflow"
 import "reactflow/dist/style.css"
 import { Container } from "react-bootstrap"
 import logo_iges from "../images/logo-iges.png"
@@ -28,73 +28,73 @@ const nodeStyle = {
 const initialNodes = [
   {
     id: "nusad",
-    position: { x: 400, y: 0 },
+    position: { x: 400, y: 50 },
     data: { label: "NUSAD" },
     style: { ...nodeStyle, background: "#0047AB" },
   },
   {
     id: "teleconsulta",
-    position: { x: 150, y: 100 },
+    position: { x: 150, y: 150 },
     data: { label: "TELECONSULTA" },
     style: nodeStyle,
   },
   {
     id: "teleinterconsulta",
-    position: { x: 400, y: 100 },
+    position: { x: 400, y: 150 },
     data: { label: "TELE INTERCONSULTA" },
     style: nodeStyle,
   },
   {
     id: "rounds",
-    position: { x: 650, y: 100 },
+    position: { x: 650, y: 150 },
     data: { label: "ROUNDS" },
     style: nodeStyle,
   },
   {
     id: "projeto-piloto",
-    position: { x: 150, y: 200 },
+    position: { x: 150, y: 250 },
     data: { label: "Projeto piloto - UPA VICENTE PIRES" },
     style: { ...nodeStyle, fontSize: "12px" },
   },
   {
     id: "psiquiatria",
-    position: { x: 400, y: 200 },
+    position: { x: 400, y: 250 },
     data: { label: "PSIQUIATRIA" },
     style: nodeStyle,
   },
   {
     id: "hb-hrsm",
-    position: { x: 650, y: 200 },
+    position: { x: 650, y: 250 },
     data: { label: "HB/HRSM/UPAS/HCSOL" },
     style: nodeStyle,
   },
   {
     id: "clinica-medica-1",
-    position: { x: 150, y: 300 },
+    position: { x: 150, y: 350 },
     data: { label: "CLÍNICA MÉDICA" },
     style: nodeStyle,
   },
   {
     id: "cardiologia",
-    position: { x: 400, y: 300 },
+    position: { x: 400, y: 350 },
     data: { label: "CARDIOLOGIA" },
     style: nodeStyle,
   },
   {
     id: "clinica-medica-2",
-    position: { x: 650, y: 300 },
+    position: { x: 650, y: 350 },
     data: { label: "CLÍNICA MÉDICA" },
     style: nodeStyle,
   },
   {
     id: "pediatria",
-    position: { x: 400, y: 400 },
+    position: { x: 400, y: 450 },
     data: { label: "PEDIATRIA" },
     style: nodeStyle,
   },
   {
     id: "pneumologia",
-    position: { x: 400, y: 500 },
+    position: { x: 400, y: 550 },
     data: { label: "PNEUMOLOGIA" },
     style: nodeStyle,
   },
@@ -133,8 +133,16 @@ const Home = () => {
   )
 
   return (
-    <Container fluid className="p-0" style={{ height: "100vh" }}>
-      <div style={{ height: "100%", width: "100%" }}>
+    <Container fluid className="p-0" style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+      <div
+        style={{ padding: "20px", backgroundColor: "#f8f9fa", borderBottom: "1px solid #dee2e6", textAlign: "center" }}
+      >
+        <img src={logo_iges || "/placeholder.svg"} alt="Logo IGES" style={{ height: "60px" }} />
+        <h2 style={{ marginTop: "10px" }}>Núcleo de Inovação, Ensino e Saúde Digital - NUSAD</h2>
+        <h5>Amandha Roberta Fernandes Dias</h5>
+        <h5>Coordenadora do Núcleo</h5>
+      </div>
+      <div style={{ height: "calc(100% - 120px)", width: "100%" }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -145,11 +153,7 @@ const Home = () => {
           attributionPosition="bottom-right"
         >
           <Controls />
-          <Background color="#aaa" gap={16} />
-          <Panel position="top-center" style={{ marginTop: "10px" }}>
-            <img src={logo_iges || "/placeholder.svg"} alt="Logo IGES" style={{ height: "60px" }} />
-            <h2 style={{ marginTop: "10px" }}>Painel NUSAD</h2>
-          </Panel>
+          <Background color="#ffffff" gap={16} />
         </ReactFlow>
       </div>
     </Container>
