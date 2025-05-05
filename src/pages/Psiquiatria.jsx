@@ -1,9 +1,9 @@
 "use client"
 
-import PsychiatryDashboard from "../components/PsychiatryDashboard"
+import UpdatedPsychiatryDashboard from "../components/UpdatedPsychiatryDashboard"
 
 const Psiquiatria = () => {
-  return <PsychiatryDashboard />
+  return <UpdatedPsychiatryDashboard />
 }
 
 export default Psiquiatria

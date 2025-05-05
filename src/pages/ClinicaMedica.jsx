@@ -1,9 +1,14 @@
 "use client"
 
-import SpecialtyDashboard from "../components/SpecialtyDashboard"
+import React from 'react'
+import PlanilhaTelemed from '../components/PlanilhaTelemed'
 
 const ClinicaMedica = () => {
-  return <SpecialtyDashboard specialtyName="Clínica Médica" />
+  return (
+    <>
+      <PlanilhaTelemed />
+    </>
+  )
 }
 
 export default ClinicaMedica

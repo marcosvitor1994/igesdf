@@ -69,12 +69,6 @@ const initialNodes = [
     style: nodeStyle,
   },
   {
-    id: "clinica-medica-1",
-    position: { x: 150, y: 350 },
-    data: { label: "CLÍNICA MÉDICA" },
-    style: nodeStyle,
-  },
-  {
     id: "cardiologia",
     position: { x: 400, y: 350 },
     data: { label: "CARDIOLOGIA" },
@@ -106,7 +100,6 @@ const initialEdges = [
   { id: "e1-3", source: "nusad", target: "teleinterconsulta" },
   { id: "e1-4", source: "nusad", target: "rounds" },
   { id: "e2-5", source: "teleconsulta", target: "projeto-piloto" },
-  { id: "e2-8", source: "teleconsulta", target: "clinica-medica-1" },
   { id: "e3-6", source: "teleinterconsulta", target: "psiquiatria" },
   { id: "e6-9", source: "psiquiatria", target: "cardiologia" },
   { id: "e9-10", source: "cardiologia", target: "pediatria" },
@@ -140,7 +133,7 @@ const Home = () => {
         <img src={logo_iges || "/placeholder.svg"} alt="Logo IGES" style={{ height: "60px" }} />
         <h2 style={{ marginTop: "10px" }}>Núcleo de Inovação, Ensino e Saúde Digital - NUSAD</h2>
         <h5>Amandha Roberta Fernandes Dias</h5>
-        <h5>Coordenadora do Núcleo</h5>
+        <h5>Chefe do Núcleo</h5>
       </div>
       <div style={{ height: "calc(100% - 120px)", width: "100%" }}>
         <ReactFlow

@@ -75,7 +75,7 @@ const Login = () => {
 
       <Col md={12} style={{ backgroundColor: '#f8f9fa' }}>
       <br />
-        <h1>Painel NUSAP</h1>
+        <h1>Painel NUSAD</h1>
         <br />
             <Image src={logo_iges} alt="Fornec Engenharia" style={{ width: '240px' }} className="d-flex mx-auto" />
         <br />

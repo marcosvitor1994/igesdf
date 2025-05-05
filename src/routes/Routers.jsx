@@ -17,6 +17,7 @@ import Pneumologia from "../pages/Pneumologia"
 import ClinicaMedica from "../pages/ClinicaMedica"
 import HbHrsm from "../pages/HbHrsm"
 import Nusad from "../pages/Nusad"
+import TimelineProject from "../components/Timeline"
 
 const Routers = () => {
   return (
@@ -35,13 +36,13 @@ const Routers = () => {
           <Route path="/cardiologia" element={<Cardiologia />} />
           <Route path="/pediatria" element={<Pediatria />} />
           <Route path="/pneumologia" element={<Pneumologia />} />
-          <Route path="/clinica-medica-1" element={<ClinicaMedica />} />
           <Route path="/clinica-medica-2" element={<ClinicaMedica />} />
           <Route path="/hb-hrsm" element={<HbHrsm />} />
           <Route path="/nusad" element={<Nusad />} />
         </Route>
 
         <Route path="/login" element={<Login />} />
+        <Route path="/timeline" element={<TimelineProject />} />
       </Routes>
     </>
   )

@@ -251,15 +251,7 @@ const PsychiatryDashboard = () => {
 
   return (
     <div className="nusad-container">
-      <div className="nusad-header">
-        <h1>Painel de Gerenciamento - Psiquiatria</h1>
-
-        <button onClick={refreshData} className="refresh-button">
-          <RefreshCw size={16} className={refreshing ? "icon-spin" : ""} />
-          Atualizar dados
-        </button>
-      </div>
-
+      
       <div className="filters-container">
         <div className="filter-group">
           <label className="filter-label">
@@ -496,8 +488,8 @@ const PsychiatryDashboard = () => {
             </div>
           </div>
 
-          {/* Evasion reasons section */}
-          <div className="specialty-details mt-6">
+           {/* Evasion reasons section */}
+           <div className="specialty-details mt-6">
             <h2>
               <BarChart2 size={20} className="icon-pink" />
               Motivos de Não Conclusão
@@ -514,22 +506,37 @@ const PsychiatryDashboard = () => {
             <div className="mt-4">
               {Object.keys(evasionReasons).length > 0 ? (
                 <div className="grid gap-4">
-                  {Object.entries(evasionReasons).map(([reason, count], index) => (
-                    <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium">{reason}</span>
-                        <span className="font-bold">{count}</span>
+                  {Object.entries(evasionReasons).map(([reason, count], index) => {
+                    // Adicionar informações detalhadas para Alta Demanda
+                    const isAltaDemanda = reason === "Alta Demanda";
+                    
+                    return (
+                      <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium">{reason}</span>
+                          <span className="font-bold">{count}</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div
+                            className="bg-amber-500 h-2.5 rounded-full"
+                            style={{
+                              width: `${(count / atendimentosEvadidos) * 100}%`,
+                            }}
+                          ></div>
+                        </div>
+                        
+                        {/* Informações adicionais para Alta Demanda */}
+                        {isAltaDemanda && (
+                          <div className="alta-detail mt-3 p-3 bg-gray-100 rounded text-sm">
+                            <p className="font-medium mb-1">No mês de abril solicitações CRM:</p>
+                            <ul className="list-disc pl-5">
+                              Solicitações: 91 | Atendimentos presenciais realizados: 43
+                            </ul>
+                          </div>
+                        )}
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div
-                          className="bg-amber-500 h-2.5 rounded-full"
-                          style={{
-                            width: `${(count / atendimentosEvadidos) * 100}%`,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-gray-500">Não há dados de não conclusão no período selecionado.</p>
