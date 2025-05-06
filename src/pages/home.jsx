@@ -41,7 +41,7 @@ const initialNodes = [
   {
     id: "teleinterconsulta",
     position: { x: 400, y: 150 },
-    data: { label: "TELE INTERCONSULTA" },
+    data: { label: "TELEINTERCONSULTA" },
     style: nodeStyle,
   },
   {
