@@ -22,9 +22,11 @@ const TimelineProject = ({ onFinish }) => {
         color: "#0052cc", // Azul
         mainTask: "Início do Projeto Piloto - UPA VICENTE PIRES",
         activities: [
-          "Teleconsulta e Atendimento das fichas verdes - fase monitoramento",
-          "Início das respostas de pareceres por especialidade clínicas no MV",
-          "Integração com possibilidade de Teleinterconsulta conforme demanda",
+          "Teleconsulta e Atendimento das fichas verdes  - fase implementacao",
+          "Início das respostas de pareceres pelas 14 subespecialidades clínicas  do hospital de base pelo MV - fase de implentacao",
+          "Integração com possibilidade de Teleinterconsulta conforme demanda - em implementacao",
+          "Captacao de RH e Materiais - no aguardo",
+          "Inicio da implementacao do round - GLs  - à disposição para retorno",
         ],
       },
       {
@@ -33,7 +35,7 @@ const TimelineProject = ({ onFinish }) => {
         mainTask: "Avaliação inicial do Piloto e Ajustes com base nos indicadores",
         activities: [
           "Capacitação Interna e Institucionalização dos processos digitais",
-          "Início da ampliação dos pareceres para especialidades cirúrgicas",
+          "Início da ampliação dos pareceres para demais especialidades clínicas e cirúrgicas",
         ],
       },
       {
