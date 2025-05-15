@@ -1,9 +1,13 @@
-"use client"
-
 import SpecialtyDashboard from "../components/SpecialtyDashboard"
+import NavbarMenu from "../components/NavbarMenu"
 
 const Nusad = () => {
-  return <SpecialtyDashboard showSpecialtyFilter={true} />
+  return (
+    <>
+      <NavbarMenu />
+      <SpecialtyDashboard showSpecialtyFilter={true} />
+    </>
+  )
 }
 
 export default Nusad

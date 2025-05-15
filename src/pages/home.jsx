@@ -1,155 +1,102 @@
 "use client"
-
-import { useCallback } from "react"
+import { Container, Row, Col, Card } from "react-bootstrap"
 import { useNavigate } from "react-router-dom"
-import ReactFlow, { Controls, Background, useNodesState, useEdgesState } from "reactflow"
-import "reactflow/dist/style.css"
-import { Container } from "react-bootstrap"
+import NavbarMenu from "../components/NavbarMenu"
 import logo_iges from "../images/logo-iges.png"
-
-// Estilo personalizado para os nós
-const nodeStyle = {
-  padding: "10px 20px",
-  borderRadius: "30px",
-  background: "#1a73e8",
-  color: "white",
-  fontWeight: "bold",
-  border: "none",
-  textAlign: "center",
-  minWidth: "180px",
-  cursor: "pointer",
-  fontSize: "14px",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-}
-
-// Nós do fluxograma
-const initialNodes = [
-  {
-    id: "nusad",
-    position: { x: 400, y: 50 },
-    data: { label: "NUSAD" },
-    style: { ...nodeStyle, background: "#0047AB" },
-  },
-  {
-    id: "teleconsulta",
-    position: { x: 150, y: 150 },
-    data: { label: "TELECONSULTA" },
-    style: nodeStyle,
-  },
-  {
-    id: "teleinterconsulta",
-    position: { x: 400, y: 150 },
-    data: { label: "TELEINTERCONSULTA" },
-    style: nodeStyle,
-  },
-  {
-    id: "rounds",
-    position: { x: 650, y: 150 },
-    data: { label: "ROUNDS" },
-    style: nodeStyle,
-  },
-  {
-    id: "projeto-piloto",
-    position: { x: 150, y: 250 },
-    data: { label: "Projeto piloto - UPA VICENTE PIRES" },
-    style: { ...nodeStyle, fontSize: "12px" },
-  },
-  {
-    id: "psiquiatria",
-    position: { x: 400, y: 250 },
-    data: { label: "PSIQUIATRIA" },
-    style: nodeStyle,
-  },
-  {
-    id: "hb-hrsm",
-    position: { x: 650, y: 250 },
-    data: { label: "HB/HRSM/UPAS/HCSOL" },
-    style: nodeStyle,
-  },
-  {
-    id: "cardiologia",
-    position: { x: 400, y: 350 },
-    data: { label: "CARDIOLOGIA" },
-    style: nodeStyle,
-  },
-  {
-    id: "clinica-medica-2",
-    position: { x: 650, y: 350 },
-    data: { label: "CLÍNICA MÉDICA" },
-    style: nodeStyle,
-  },
-  {
-    id: "pediatria",
-    position: { x: 400, y: 450 },
-    data: { label: "PEDIATRIA" },
-    style: nodeStyle,
-  },
-  {
-    id: "pneumologia",
-    position: { x: 400, y: 550 },
-    data: { label: "PNEUMOLOGIA" },
-    style: nodeStyle,
-  },
-]
-
-// Conexões entre os nós
-const initialEdges = [
-  { id: "e1-2", source: "nusad", target: "teleconsulta" },
-  { id: "e1-3", source: "nusad", target: "teleinterconsulta" },
-  { id: "e1-4", source: "nusad", target: "rounds" },
-  { id: "e2-5", source: "teleconsulta", target: "projeto-piloto" },
-  { id: "e3-6", source: "teleinterconsulta", target: "psiquiatria" },
-  { id: "e6-9", source: "psiquiatria", target: "cardiologia" },
-  { id: "e9-10", source: "cardiologia", target: "pediatria" },
-  { id: "e10-11", source: "pediatria", target: "pneumologia" },
-  { id: "e4-7", source: "rounds", target: "hb-hrsm" },
-  { id: "e7-10", source: "hb-hrsm", target: "clinica-medica-2" },
-]
 
 const Home = () => {
   const navigate = useNavigate()
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
-  // Função para lidar com o clique em um nó
-  const onNodeClick = useCallback(
-    (event, node) => {
-      // Aqui você pode navegar para a página correspondente ao nó clicado
-      console.log(`Clicou no nó: ${node.id}`)
-
-      // Exemplo de navegação
-      navigate(`/${node.id}`)
+  const cards = [
+    {
+      title: "Projeto Piloto UPA VP",
+      description: "Acompanhamento do projeto piloto na UPA Vicente Pires",
+      path: "/projeto-piloto",
+      color: "#0052cc",
     },
-    [navigate],
-  )
+    {
+      title: "Painel NUSAD",
+      description: "Visão geral de todos os atendimentos",
+      path: "/nusad",
+      color: "#00875A",
+    },
+    {
+      title: "Psiquiatria",
+      description: "Monitoramento dos atendimentos de Psiquiatria",
+      path: "/psiquiatria",
+      color: "#E91E63",
+    },
+    {
+      title: "Cardiologia",
+      description: "Monitoramento dos atendimentos de Cardiologia",
+      path: "/cardiologia",
+      color: "#FF5722",
+    },
+    {
+      title: "Pediatria",
+      description: "Monitoramento dos atendimentos de Pediatria",
+      path: "/pediatria",
+      color: "#3F51B5",
+    },
+    {
+      title: "Pneumologia",
+      description: "Monitoramento dos atendimentos de Pneumologia",
+      path: "/pneumologia",
+      color: "#607D8B",
+    },
+  ]
+
+  const cardStyle = {
+    cursor: "pointer",
+    height: "100%",
+    transition: "transform 0.3s, box-shadow 0.3s",
+    border: "none",
+    borderRadius: "8px",
+    overflow: "hidden",
+  }
+
+  const cardHeaderStyle = {
+    padding: "20px",
+    color: "white",
+    fontWeight: "bold",
+  }
 
   return (
-    <Container fluid className="p-0" style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-      <div
-        style={{ padding: "20px", backgroundColor: "#f8f9fa", borderBottom: "1px solid #dee2e6", textAlign: "center" }}
-      >
-        <img src={logo_iges || "/placeholder.svg"} alt="Logo IGES" style={{ height: "60px" }} />
-        <h2 style={{ marginTop: "10px" }}>Núcleo de Inovação, Ensino e Saúde Digital - NUSAD</h2>
-        <h5>Amandha Roberta Fernandes Dias</h5>
-        <h5>Chefe do Núcleo</h5>
-      </div>
-      <div style={{ height: "calc(100% - 120px)", width: "100%" }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onNodeClick={onNodeClick}
-          fitView
-          attributionPosition="bottom-right"
-        >
-          <Controls />
-          <Background color="#ffffff" gap={16} />
-        </ReactFlow>
-      </div>
-    </Container>
+    <>
+      <NavbarMenu />
+      <Container className="py-4">
+        <div className="text-center mb-5">
+          <img src={logo_iges || "/placeholder.svg"} alt="Logo IGES" style={{ height: "80px" }} />
+          <h1 className="mt-3">Núcleo de Inovação, Ensino e Saúde Digital</h1>
+          <p className="lead">Painel de Monitoramento</p>
+        </div>
+
+        <Row xs={1} md={2} lg={3} className="g-4">
+          {cards.map((card, idx) => (
+            <Col key={idx}>
+              <Card
+                style={cardStyle}
+                onClick={() => navigate(card.path)}
+                className="shadow"
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = "translateY(-5px)"
+                  e.currentTarget.style.boxShadow = "0 10px 20px rgba(0,0,0,0.1)"
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)"
+                  e.currentTarget.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)"
+                }}
+              >
+                <div style={{ ...cardHeaderStyle, backgroundColor: card.color }}>{card.title}</div>
+                <Card.Body>
+                  <Card.Text>{card.description}</Card.Text>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Container>
+    </>
   )
 }
 

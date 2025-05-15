@@ -1,9 +1,13 @@
-"use client"
-
 import SpecialtyDashboard from "../components/SpecialtyDashboard"
+import NavbarMenu from "../components/NavbarMenu"
 
 const Pediatria = () => {
-  return <SpecialtyDashboard specialtyName="Pediatria" />
+  return (
+    <>
+      <NavbarMenu />
+      <SpecialtyDashboard specialtyName="Pediatria" />
+    </>
+  )
 }
 
 export default Pediatria

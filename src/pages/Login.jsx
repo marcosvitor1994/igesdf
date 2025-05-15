@@ -38,7 +38,7 @@ const Login = () => {
           storage.setItem("email", response.data.user.email)
 
           // Redireciona para a timeline após login bem-sucedido
-          navigate("/timeline")
+          navigate("/home")
         } else if (response.data.message && response.data.user && response.data.user.role === "PreAprovacao") {
           // Usuário aguardando aprovação - exibe a mensagem da API
           setErrorEmail(response.data.message)
