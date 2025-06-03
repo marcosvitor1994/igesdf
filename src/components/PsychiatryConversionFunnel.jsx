@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, Typography, Box, LinearProgress, Chip, Tabs, Tab, Button, ButtonGroup } from "@mui/material"
 import { Users, Calendar, Truck, CheckCircle, XCircle, AlertTriangle } from "lucide-react"
+import axios from "axios"
 
 const PsychiatryConversionFunnel = () => {
   const [funnelData, setFunnelData] = useState({
@@ -23,15 +24,15 @@ const PsychiatryConversionFunnel = () => {
     setLoading(true)
     try {
       // Buscar dados da API principal (Alta demanda)
-      const psychResponse = await fetch("/api/psiquiatria")
+      const psychResponse = await axios.get("https://api-google-sheets-7zph.vercel.app/psiquiatria")
       const psychData = await psychResponse.json()
 
       // Buscar dados das agendas
-      const agendaResponse = await fetch(`/api/agenda/${selectedMonth}`)
+      const agendaResponse = await axios.get(`https://api-google-sheets-7zph.vercel.app/agenda/${selectedMonth}`)
       const agendaData = await agendaResponse.json()
 
       // Buscar dados do compilado
-      const compiladoResponse = await fetch("/api/compilado")
+      const compiladoResponse = await axios.get("https://api-google-sheets-7zph.vercel.app/compilado")
       const compiladoData = await compiladoResponse.json()
 
       // Processar dados

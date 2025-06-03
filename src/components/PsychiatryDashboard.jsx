@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import axios from "axios"
+import PsychiatryConversionFunnel from "./PsychiatryConversionFunnel";
 import {
   Calendar,
   CheckSquare,
@@ -546,12 +547,7 @@ const PsychiatryDashboard = () => {
 
                         {/* Informações adicionais para Alta Demanda */}
                         {isAltaDemanda && (
-                          <div className="alta-detail mt-3 p-3 bg-gray-100 rounded text-sm">
-                            <p className="font-medium mb-1">No mês de abril solicitações CRM:</p>
-                            <ul className="list-disc pl-5">
-                              Solicitações: 91 | Atendimentos presenciais realizados: 43
-                            </ul>
-                          </div>
+                            <PsychiatryConversionFunnel />
                         )}
                       </div>
                     )
