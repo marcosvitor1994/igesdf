@@ -23,17 +23,17 @@ const PsychiatryConversionFunnel = () => {
   const fetchFunnelData = async () => {
     setLoading(true)
     try {
-      // Buscar dados da API principal (Alta demanda)
-      const psychResponse = await axios.get("https://api-google-sheets-7zph.vercel.app/psiquiatria")
-      const psychData = await psychResponse.json()
-
-      // Buscar dados das agendas
+      // Buscar dados das agendas do mês selecionado
       const agendaResponse = await axios.get(`https://api-google-sheets-7zph.vercel.app/agenda/${selectedMonth}`)
-      const agendaData = await agendaResponse.json()
+      const agendaData = agendaResponse.data
 
       // Buscar dados do compilado
-      const compiladoResponse = await axios.get("https://api-google-sheets-7zph.vercel.app/compilado")
-      const compiladoData = await compiladoResponse.json()
+      const compiladoResponse = await axios.get("https://api-google-sheets-7zph.vercel.app/compilado_consultas")
+      const compiladoData = compiladoResponse.data
+
+      // Buscar dados da API principal (para alta demanda)
+      const psychResponse = await axios.get("https://api-google-sheets-7zph.vercel.app/hospital")
+      const psychData = psychResponse.data
 
       // Processar dados
       const altaDemandaPatients = processAltaDemanda(psychData)
@@ -57,11 +57,13 @@ const PsychiatryConversionFunnel = () => {
   const processAltaDemanda = (data) => {
     if (!data?.values) return []
 
+    // Filtra os dados para psiquiatria com status "Alta demanda" ou "Alta Demanda"
     return data.values
-      .slice(1)
+      .slice(1) // Remove header
       .filter((row) => {
         const status = row[9] // Coluna de status
-        return status === "Alta demanda"
+        const especialidade = row[6] // Coluna de especialidade
+        return (status === "Alta demanda" || status === "Alta Demanda") && especialidade === "Psiquiatria"
       })
       .map((row) => ({
         id: row[0],
@@ -76,8 +78,8 @@ const PsychiatryConversionFunnel = () => {
     if (!data?.values) return []
 
     return data.values
-      .slice(1)
-      .filter((row) => row[2])
+      .slice(1) // Remove header
+      .filter((row) => row[2] && row[2].trim() !== "") // Tem nome do paciente
       .map((row) => ({
         data: row[0],
         horario: row[1],
@@ -94,9 +96,9 @@ const PsychiatryConversionFunnel = () => {
     if (!data?.values) return []
 
     return data.values
-      .slice(1)
+      .slice(1) // Remove header
       .filter((row) => {
-        const procedimento = row[9]
+        const procedimento = row[9] // Coluna PROCEDIMENTO
         return procedimento === "PSIQUIATRIA"
       })
       .map((row) => ({
@@ -113,44 +115,97 @@ const PsychiatryConversionFunnel = () => {
     const agendamentos = processAgendamentos(agendaData)
     const transportes = processTransportes(compiladoData)
 
+    // Função para normalizar nomes para comparação
+    const normalizeName = (name) => {
+      if (!name) return ""
+      return name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // Remove acentos
+        .replace(/\s+/g, " ") // Remove espaços extras
+        .replace(/[^\w\s]/g, "") // Remove caracteres especiais
+        .trim()
+    }
+
+    // Função para extrair palavras-chave do nome
+    const extractKeywords = (name) => {
+      const normalized = normalizeName(name)
+      return normalized.split(" ").filter(word => word.length > 2) // Palavras com mais de 2 caracteres
+    }
+
     return agendamentos.map((agenda) => {
-      const transporte = transportes.find(
-        (t) =>
-          t.paciente.toLowerCase().includes(agenda.paciente.toLowerCase()) ||
-          agenda.paciente.toLowerCase().includes(t.paciente.toLowerCase()),
-      )
+      const agendaKeywords = extractKeywords(agenda.paciente)
+      
+      // Buscar transporte correspondente usando múltiplas estratégias
+      const transporte = transportes.find((t) => {
+        const transporteKeywords = extractKeywords(t.paciente)
+        
+        // Estratégia 1: Correspondência exata normalizada
+        if (normalizeName(agenda.paciente) === normalizeName(t.paciente)) {
+          return true
+        }
+        
+        // Estratégia 2: Pelo menos 2 palavras-chave em comum
+        const commonKeywords = agendaKeywords.filter(keyword => 
+          transporteKeywords.some(tKeyword => 
+            tKeyword.includes(keyword) || keyword.includes(tKeyword)
+          )
+        )
+        
+        return commonKeywords.length >= 2
+      })
+
+      // Determinar status da consulta
+      let efetivada = false
+      let cancelada = false
+      let atraso = false
+
+      if (agenda.compareceu) {
+        efetivada = agenda.compareceu === "SIM"
+        cancelada = agenda.compareceu === "NÃO"
+        atraso = agenda.compareceu.includes("ATRASO") || 
+                 agenda.compareceu.includes("atraso") ||
+                 agenda.compareceu.includes("Atraso")
+      }
 
       return {
         ...agenda,
         transporte,
-        efetivada: agenda.compareceu === "SIM",
-        cancelada: agenda.compareceu === "NÃO",
-        atraso: agenda.compareceu?.includes("ATRASO"),
+        efetivada,
+        cancelada,
+        atraso,
       }
     })
   }
 
   const calculateConversionRates = () => {
-    const total = funnelData.altaDemanda.length
-    const agendados = funnelData.agendamentos.length
-    const transportados = funnelData.transportes.filter((t) => t.status === "REALIZADA").length
+    const totalAltaDemanda = funnelData.altaDemanda.length
+    const totalAgendados = funnelData.agendamentos.length
+    const transportesRealizados = funnelData.transportes.filter((t) => t.status === "REALIZADA").length
     const consultasEfetivadas = funnelData.consultas.filter((c) => c.efetivada).length
 
+    // Cálculos de taxa baseados no funil
+    const taxaAgendamento = totalAltaDemanda > 0 ? ((totalAgendados / totalAltaDemanda) * 100) : 0
+    const taxaTransporte = totalAgendados > 0 ? ((transportesRealizados / totalAgendados) * 100) : 0
+    const taxaEfetivacao = transportesRealizados > 0 ? ((consultasEfetivadas / transportesRealizados) * 100) : 0
+    const taxaGeral = totalAltaDemanda > 0 ? ((consultasEfetivadas / totalAltaDemanda) * 100) : 0
+
     return {
-      total,
-      agendados,
-      transportados,
+      totalAltaDemanda,
+      totalAgendados,
+      transportesRealizados,
       consultasEfetivadas,
-      taxaAgendamento: total > 0 ? ((agendados / total) * 100).toFixed(1) : 0,
-      taxaTransporte: agendados > 0 ? ((transportados / agendados) * 100).toFixed(1) : 0,
-      taxaEfetivacao: transportados > 0 ? ((consultasEfetivadas / transportados) * 100).toFixed(1) : 0,
-      taxaGeral: total > 0 ? ((consultasEfetivadas / total) * 100).toFixed(1) : 0,
+      taxaAgendamento: Math.min(taxaAgendamento, 100).toFixed(1), // Limitado a 100%
+      taxaTransporte: Math.min(taxaTransporte, 100).toFixed(1),
+      taxaEfetivacao: Math.min(taxaEfetivacao, 100).toFixed(1),
+      taxaGeral: Math.min(taxaGeral, 100).toFixed(1),
     }
   }
 
   const getMotivosNaoComparecimento = () => {
     const motivos = {}
 
+    // Motivos das consultas
     funnelData.consultas.forEach((consulta) => {
       if (consulta.compareceu === "NÃO") {
         const motivo = consulta.observacao || "Não informado"
@@ -158,6 +213,7 @@ const PsychiatryConversionFunnel = () => {
       }
     })
 
+    // Motivos dos transportes cancelados
     funnelData.transportes.forEach((transporte) => {
       if (transporte.status === "CANCELADA") {
         const motivo = transporte.motivo || "Não informado"
@@ -168,6 +224,21 @@ const PsychiatryConversionFunnel = () => {
     return Object.entries(motivos)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 5)
+  }
+
+  const getComparecimentoDetalhes = () => {
+    const compareceram = funnelData.consultas.filter((c) => c.efetivada).length
+    const naoCompareceram = funnelData.consultas.filter((c) => c.cancelada).length
+    const comAtraso = funnelData.consultas.filter((c) => c.atraso).length
+    
+    return { compareceram, naoCompareceram, comAtraso }
+  }
+
+  const getStatusTransportes = () => {
+    return funnelData.transportes.reduce((acc, transporte) => {
+      acc[transporte.status] = (acc[transporte.status] || 0) + 1
+      return acc
+    }, {})
   }
 
   if (loading) {
@@ -185,6 +256,8 @@ const PsychiatryConversionFunnel = () => {
 
   const rates = calculateConversionRates()
   const motivosNaoComparecimento = getMotivosNaoComparecimento()
+  const comparecimentoDetalhes = getComparecimentoDetalhes()
+  const statusTransportes = getStatusTransportes()
 
   return (
     <Box sx={{ p: 3 }}>
@@ -225,7 +298,7 @@ const PsychiatryConversionFunnel = () => {
           />
           <CardContent sx={{ pt: 0 }}>
             <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-              {rates.total}
+              {rates.totalAltaDemanda}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Solicitações com status "Alta demanda"
@@ -244,7 +317,7 @@ const PsychiatryConversionFunnel = () => {
           />
           <CardContent sx={{ pt: 0 }}>
             <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-              {rates.agendados}
+              {rates.totalAgendados}
             </Typography>
             <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
               Taxa: {rates.taxaAgendamento}%
@@ -268,7 +341,7 @@ const PsychiatryConversionFunnel = () => {
           />
           <CardContent sx={{ pt: 0 }}>
             <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-              {rates.transportados}
+              {rates.transportesRealizados}
             </Typography>
             <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
               Taxa: {rates.taxaTransporte}%
@@ -322,12 +395,18 @@ const PsychiatryConversionFunnel = () => {
               Top 5 Motivos de Não Comparecimento
             </Typography>
             <Box sx={{ mt: 2 }}>
-              {motivosNaoComparecimento.map(([motivo, quantidade], index) => (
-                <Box key={index} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                  <Typography variant="body2">{motivo}</Typography>
-                  <Chip label={quantidade} variant="outlined" size="small" />
-                </Box>
-              ))}
+              {motivosNaoComparecimento.length > 0 ? (
+                motivosNaoComparecimento.map(([motivo, quantidade], index) => (
+                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                    <Typography variant="body2">{motivo}</Typography>
+                    <Chip label={quantidade} variant="outlined" size="small" />
+                  </Box>
+                ))
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Nenhum motivo de não comparecimento encontrado para o período selecionado.
+                </Typography>
+              )}
             </Box>
           </CardContent>
         )}
@@ -342,12 +421,7 @@ const PsychiatryConversionFunnel = () => {
                     Status dos Transportes
                   </Typography>
                   <Box sx={{ mt: 2 }}>
-                    {Object.entries(
-                      funnelData.transportes.reduce((acc, transporte) => {
-                        acc[transporte.status] = (acc[transporte.status] || 0) + 1
-                        return acc
-                      }, {})
-                    ).map(([status, count]) => (
+                    {Object.entries(statusTransportes).map(([status, count]) => (
                       <Box key={status} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                         <Typography variant="body2">{status}</Typography>
                         <Chip 
@@ -372,21 +446,21 @@ const PsychiatryConversionFunnel = () => {
                         <CheckCircle size={16} color="#16a34a" />
                         <Typography variant="body2">Compareceram</Typography>
                       </Box>
-                      <Chip label={funnelData.consultas.filter((c) => c.efetivada).length} color="primary" size="small" />
+                      <Chip label={comparecimentoDetalhes.compareceram} color="primary" size="small" />
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <XCircle size={16} color="#dc2626" />
                         <Typography variant="body2">Não compareceram</Typography>
                       </Box>
-                      <Chip label={funnelData.consultas.filter((c) => c.cancelada).length} color="error" size="small" />
+                      <Chip label={comparecimentoDetalhes.naoCompareceram} color="error" size="small" />
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <AlertTriangle size={16} color="#ca8a04" />
                         <Typography variant="body2">Com atraso</Typography>
                       </Box>
-                      <Chip label={funnelData.consultas.filter((c) => c.atraso).length} variant="outlined" size="small" />
+                      <Chip label={comparecimentoDetalhes.comAtraso} variant="outlined" size="small" />
                     </Box>
                   </Box>
                 </CardContent>
