@@ -4,22 +4,16 @@ import { useState, useEffect } from "react"
 import axios from "axios"
 import { Calendar, CheckSquare, Heart, UserCheck, AlertTriangle, RefreshCw, PieChart } from "lucide-react"
 
-const SpecialtyDashboard = ({
-  specialtyName,
-  showSpecialtyFilter = false,
-  additionalFeatures = false,
-  apiUrl = "https://api-google-sheets-7zph.vercel.app/hospital", // URL padrão
-}) => {
+const CardiologyDashboard = () => {
   const [pedidos, setPedidos] = useState([])
   const [filteredPedidos, setFilteredPedidos] = useState([])
-  const [specialtyFilter, setSpecialtyFilter] = useState(specialtyName || "")
   const [startDate, setStartDate] = useState(() => {
-    return new Date(2025, 3, 1, 12, 0, 0, 0) // Abril = mês 3 (0-indexed)
+    return new Date(2025, 4, 1, 12, 0, 0, 0) // Maio = mês 4 (0-indexed)
   })
   const [endDate, setEndDate] = useState(null)
   const [loading, setLoading] = useState(true)
   const [dateRange, setDateRange] = useState({
-    min: new Date(2025, 3, 1, 12, 0, 0, 0), // Abril = mês 3 (0-indexed)
+    min: new Date(2025, 4, 1, 12, 0, 0, 0), // Maio = mês 4 (0-indexed)
     max: null,
   })
   const [refreshing, setRefreshing] = useState(false)
@@ -31,23 +25,28 @@ const SpecialtyDashboard = ({
   const fetchPedidos = async () => {
     setLoading(true)
     try {
-      const response = await axios.get(apiUrl)
+      const response = await axios.get("https://api-google-sheets-7zph.vercel.app/cardiologia")
       const data = response.data.values.slice(1) // Remove header row
 
       // Set the data
       setPedidos(data)
 
-      // Calculate date range from the data
+      // Calculate date range from the data - usando o novo formato de data
       const dates = data.map((pedido) => {
-        const datePart = pedido[1].split(" ")[0] // Extract date part
-        const [day, month, year] = datePart.split("/")
-        // Criar data local sem problemas de fuso horário
-        return new Date(year, month - 1, day, 12, 0, 0, 0)
+        const dateStr = pedido[1] // "Data da Solicitação" está na coluna 1
+        if (!dateStr) return new Date()
+
+        // Formato: "6/2/25 12:54" (M/D/YY H:MM)
+        const [datePart] = dateStr.split(" ")
+        const [month, day, year] = datePart.split("/")
+        // Assumindo que anos de 2 dígitos são 20XX
+        const fullYear = year.length === 2 ? `20${year}` : year
+        return new Date(fullYear, month - 1, day, 12, 0, 0, 0)
       })
 
       const maxDate = dates.length > 0 ? new Date(Math.max(...dates)) : new Date()
 
-      setDateRange({ min: new Date(2025, 3, 1, 12, 0, 0, 0), max: maxDate }) // Abril = mês 3 (0-indexed)
+      setDateRange({ min: new Date(2025, 4, 1, 12, 0, 0, 0), max: maxDate })
       setEndDate(maxDate)
     } catch (error) {
       console.error("Erro ao buscar dados:", error)
@@ -65,22 +64,23 @@ const SpecialtyDashboard = ({
 
   useEffect(() => {
     applyFilters()
-  }, [pedidos, specialtyFilter, startDate, endDate])
+  }, [pedidos, startDate, endDate])
 
   const applyFilters = () => {
     if (!pedidos.length) return
 
     let filtered = [...pedidos]
 
-    if (specialtyFilter) {
-      filtered = filtered.filter((pedido) => pedido[6] === specialtyFilter)
-    }
-
     if (startDate && endDate) {
       filtered = filtered.filter((pedido) => {
-        const dataParts = pedido[1].split(" ")[0].split("/")
-        // Criar data local sem problemas de fuso horário
-        const dataSolicitacao = new Date(dataParts[2], dataParts[1] - 1, dataParts[0], 12, 0, 0, 0)
+        const dateStr = pedido[1] // "Data da Solicitação" está na coluna 1
+        if (!dateStr) return false
+
+        // Formato: "6/2/25 12:54" (M/D/YY H:MM)
+        const [datePart] = dateStr.split(" ")
+        const [month, day, year] = datePart.split("/")
+        const fullYear = year.length === 2 ? `20${year}` : year
+        const dataSolicitacao = new Date(fullYear, month - 1, day, 12, 0, 0, 0)
 
         // Criar datas de comparação no mesmo formato (meio-dia local)
         const startCompare = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), 12, 0, 0, 0)
@@ -93,25 +93,18 @@ const SpecialtyDashboard = ({
     setFilteredPedidos(filtered)
   }
 
-  const handleSpecialtyFilterChange = (event) => {
-    setSpecialtyFilter(event.target.value)
-  }
-
   const formatDateForInput = (date) => {
     if (!date) return ""
 
-    // Garantir que estamos trabalhando com uma data local
-    const localDate = new Date(date)
-
-    // Ajustar para evitar problemas de fuso horário
-    const year = localDate.getFullYear()
-    const month = (localDate.getMonth() + 1).toString().padStart(2, "0")
-    const day = localDate.getDate().toString().padStart(2, "0")
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, "0")
+    const day = date.getDate().toString().padStart(2, "0")
 
     return `${year}-${month}-${day}`
   }
 
   // Extract unique status values and count occurrences
+  // Status está na coluna 9: "Status Chamado"
   const statusCounts = filteredPedidos.reduce((acc, pedido) => {
     const status = pedido[9] || "Não definido"
     acc[status] = (acc[status] || 0) + 1
@@ -120,32 +113,28 @@ const SpecialtyDashboard = ({
 
   // Data for the cards
   const totalAtendimentos = filteredPedidos.length
-  const especialidades = [...new Set(pedidos.map((pedido) => pedido[6]))]
-  const especialidadesFiltradas = [...new Set(filteredPedidos.map((pedido) => pedido[6]))]
   const atendimentosConcluidos = filteredPedidos.filter((pedido) => pedido[9] === "Concluído").length
 
-  // Status classes
+  // Extrair médicos únicos - coluna 8: "Especialista"
+  const medicos = [
+    ...new Set(filteredPedidos.map((pedido) => pedido[8]).filter((medico) => medico && medico !== "Não atribuído")),
+  ]
+
+  // Status classes para os novos status da cardiologia
   const statusClasses = {
     Concluído: "status-concluido",
-    Aguardando: "status-aguardando",
-    Evadido: "status-evadido",
-    Remarcado: "status-remarcado",
+    "Especialista pronto para vídeo": "status-aguardando",
+    "Alta Demanda": "status-evadido",
+    "Teleconsultor indisponível": "status-evadido",
+    "Pedido duplicado": "status-remarcado",
+    "Problemas Técnicos": "status-remarcado",
     "Não definido": "status-indefinido",
   }
-
-  // If specialty is selected, show its details
-  const selectedSpecialtyDetails = specialtyFilter
-    ? {
-        totalAtendimentos: filteredPedidos.length,
-        concluidos: filteredPedidos.filter((p) => p[9] === "Concluído").length,
-        medicos: [...new Set(filteredPedidos.map((p) => p[7]))],
-      }
-    : null
 
   return (
     <div className="nusad-container">
       <div className="nusad-header">
-        <h1>Painel de Gerenciamento {specialtyName ? `- ${specialtyName}` : "NUSAD"}</h1>
+        <h1>Painel de Gerenciamento - Cardiologia</h1>
 
         <button onClick={refreshData} className="refresh-button">
           <RefreshCw size={16} className={refreshing ? "icon-spin" : ""} />
@@ -154,23 +143,6 @@ const SpecialtyDashboard = ({
       </div>
 
       <div className="filters-container">
-        {showSpecialtyFilter && (
-          <div className="filter-group">
-            <label className="filter-label">
-              <Heart size={16} />
-              Especialidade
-            </label>
-            <select className="filter-select" value={specialtyFilter} onChange={handleSpecialtyFilterChange}>
-              <option value="">Todas as especialidades</option>
-              {especialidades.map((especialidade, index) => (
-                <option key={index} value={especialidade}>
-                  {especialidade}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
         <div className="filter-group">
           <label className="filter-label">
             <Calendar size={16} />
@@ -184,7 +156,6 @@ const SpecialtyDashboard = ({
                 value={formatDateForInput(startDate)}
                 onChange={(e) => {
                   if (e.target.value) {
-                    // Criar data local sem problemas de fuso horário
                     const [year, month, day] = e.target.value.split("-")
                     const date = new Date(year, month - 1, day, 12, 0, 0, 0)
                     setStartDate(date)
@@ -204,7 +175,6 @@ const SpecialtyDashboard = ({
                 value={formatDateForInput(endDate)}
                 onChange={(e) => {
                   if (e.target.value) {
-                    // Criar data local sem problemas de fuso horário
                     const [year, month, day] = e.target.value.split("-")
                     const date = new Date(year, month - 1, day, 12, 0, 0, 0)
                     setEndDate(date)
@@ -236,27 +206,9 @@ const SpecialtyDashboard = ({
               <div className="card-content">
                 <h3 className="card-title">Total</h3>
                 <p className="card-value">{totalAtendimentos}</p>
-                <p className="card-desc">
-                  {specialtyFilter ? `Atendimentos de ${specialtyFilter}` : "Total de atendimentos no período"}
-                </p>
+                <p className="card-desc">Total de atendimentos de Cardiologia</p>
               </div>
             </div>
-
-            {/* Card: Especialidades */}
-            {!specialtyName && (
-              <div className="stats-card card-pink">
-                <div className="card-icon">
-                  <Heart className="icon" size={24} />
-                </div>
-                <div className="card-content">
-                  <h3 className="card-title">Especialidades</h3>
-                  <p className="card-value">{specialtyFilter ? 1 : especialidadesFiltradas.length}</p>
-                  <p className="card-desc">
-                    {specialtyFilter ? `Mostrando dados de ${specialtyFilter}` : "Número de especialidades ativas"}
-                  </p>
-                </div>
-              </div>
-            )}
 
             {/* Card: Atendimentos Concluídos */}
             <div className="stats-card card-green">
@@ -269,6 +221,18 @@ const SpecialtyDashboard = ({
                 <p className="card-desc">
                   {Math.round((atendimentosConcluidos / totalAtendimentos) * 100) || 0}% do total de atendimentos
                 </p>
+              </div>
+            </div>
+
+            {/* Card: Médicos Atuantes */}
+            <div className="stats-card card-pink">
+              <div className="card-icon">
+                <Heart className="icon" size={24} />
+              </div>
+              <div className="card-content">
+                <h3 className="card-title">Especialistas</h3>
+                <p className="card-value">{medicos.length}</p>
+                <p className="card-desc">Cardiologistas atuantes no período</p>
               </div>
             </div>
 
@@ -310,52 +274,45 @@ const SpecialtyDashboard = ({
             </div>
           </div>
 
-          {/* Specialty Details when filtered */}
-          {selectedSpecialtyDetails && (
-            <div className="specialty-details">
-              <h2>
-                <Heart size={20} className="icon-pink" />
-                Detalhes da Especialidade: {specialtyFilter}
-              </h2>
+          {/* Specialty Details */}
+          <div className="specialty-details">
+            <h2>
+              <Heart size={20} className="icon-pink" />
+              Detalhes da Especialidade: Cardiologia
+            </h2>
 
-              <div className="specialty-stats">
-                <div className="specialty-stat blue">
-                  <h3>Total de atendimentos</h3>
-                  <p>{selectedSpecialtyDetails.totalAtendimentos}</p>
-                </div>
-
-                <div className="specialty-stat green">
-                  <h3>Taxa de conclusão</h3>
-                  <p>
-                    {Math.round(
-                      (selectedSpecialtyDetails.concluidos / selectedSpecialtyDetails.totalAtendimentos) * 100,
-                    ) || 0}
-                    %
-                  </p>
-                </div>
-
-                <div className="specialty-stat amber">
-                  <h3>Médicos atuantes</h3>
-                  <p>{selectedSpecialtyDetails.medicos.length}</p>
-                </div>
+            <div className="specialty-stats">
+              <div className="specialty-stat blue">
+                <h3>Total de atendimentos</h3>
+                <p>{totalAtendimentos}</p>
               </div>
 
-              <div className="specialty-doctors">
-                <h3>Médicos da especialidade:</h3>
-                <div className="doctors-list">
-                  {selectedSpecialtyDetails.medicos.map((medico, index) => (
-                    <span key={index} className="doctor-tag">
-                      {medico}
-                    </span>
-                  ))}
-                </div>
+              <div className="specialty-stat green">
+                <h3>Taxa de conclusão</h3>
+                <p>{Math.round((atendimentosConcluidos / totalAtendimentos) * 100) || 0}%</p>
+              </div>
+
+              <div className="specialty-stat amber">
+                <h3>Cardiologistas atuantes</h3>
+                <p>{medicos.length}</p>
               </div>
             </div>
-          )}
+
+            <div className="specialty-doctors">
+              <h3>Cardiologistas da especialidade:</h3>
+              <div className="doctors-list">
+                {medicos.map((medico, index) => (
+                  <span key={index} className="doctor-tag">
+                    {medico}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
         </>
       )}
     </div>
   )
 }
 
-export default SpecialtyDashboard
+export default CardiologyDashboard

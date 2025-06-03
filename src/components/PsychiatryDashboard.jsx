@@ -7,7 +7,6 @@ import {
   CheckSquare,
   UserCheck,
   AlertTriangle,
-  RefreshCw,
   PieChart,
   TrendingUp,
   BarChart2,
@@ -18,13 +17,13 @@ const PsychiatryDashboard = () => {
   const [pedidos, setPedidos] = useState([])
   const [filteredPedidos, setFilteredPedidos] = useState([])
   const [startDate, setStartDate] = useState(() => {
-    const date = new Date("2025-04-01T12:00:00") // Adicionando horário para evitar problemas de fuso
-    return date
+    // Criar data local para 1º de abril de 2025
+    return new Date(2025, 3, 1, 12, 0, 0, 0) // Abril = mês 3 (0-indexed)
   })
   const [endDate, setEndDate] = useState(null)
   const [loading, setLoading] = useState(true)
   const [dateRange, setDateRange] = useState({
-    min: new Date("2025-04-01T12:00:00"),
+    min: new Date(2025, 3, 1, 12, 0, 0, 0), // Abril = mês 3 (0-indexed)
     max: null,
   })
   const [refreshing, setRefreshing] = useState(false)
@@ -63,12 +62,13 @@ const PsychiatryDashboard = () => {
       const dates = data.map((pedido) => {
         const datePart = pedido[1].split(" ")[0] // Extract date part
         const [day, month, year] = datePart.split("/")
-        return new Date(`${year}-${month}-${day}`)
+        // Criar data local sem problemas de fuso horário
+        return new Date(year, month - 1, day, 12, 0, 0, 0)
       })
 
       const maxDate = dates.length > 0 ? new Date(Math.max(...dates)) : new Date()
 
-      setDateRange({ min: new Date("2025-04-01T12:00:00"), max: maxDate })
+      setDateRange({ min: new Date(2025, 3, 1, 12, 0, 0, 0), max: maxDate }) // Abril = mês 3 (0-indexed)
       setEndDate(maxDate)
 
       // Calculate last two weeks
@@ -165,8 +165,14 @@ const PsychiatryDashboard = () => {
     if (startDate && endDate) {
       filtered = filtered.filter((pedido) => {
         const dataParts = pedido[1].split(" ")[0].split("/")
-        const dataSolicitacao = new Date(`${dataParts[2]}-${dataParts[1]}-${dataParts[0]}`)
-        return dataSolicitacao >= startDate && dataSolicitacao <= endDate
+        // Criar data local sem problemas de fuso horário
+        const dataSolicitacao = new Date(dataParts[2], dataParts[1] - 1, dataParts[0], 12, 0, 0, 0)
+
+        // Criar datas de comparação no mesmo formato (meio-dia local)
+        const startCompare = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), 12, 0, 0, 0)
+        const endCompare = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 12, 0, 0, 0)
+
+        return dataSolicitacao >= startCompare && dataSolicitacao <= endCompare
       })
     }
 
@@ -175,27 +181,29 @@ const PsychiatryDashboard = () => {
 
   const formatDateForInput = (date) => {
     if (!date) return ""
-    // Cria uma nova data para evitar problemas de fuso horário
-    const localDate = new Date(date.getTime())
-    // Ajusta para meio-dia para evitar problemas de fuso
-    localDate.setHours(12, 0, 0, 0)
 
-    const day = localDate.getDate().toString().padStart(2, "0")
-    const month = (localDate.getMonth() + 1).toString().padStart(2, "0")
+    // Garantir que estamos trabalhando com uma data local
+    const localDate = new Date(date)
+
+    // Ajustar para evitar problemas de fuso horário
     const year = localDate.getFullYear()
+    const month = (localDate.getMonth() + 1).toString().padStart(2, "0")
+    const day = localDate.getDate().toString().padStart(2, "0")
+
     return `${year}-${month}-${day}`
   }
 
   const formatDateForDisplay = (date) => {
     if (!date) return ""
-    // Cria uma nova data para evitar problemas de fuso horário
-    const localDate = new Date(date.getTime())
-    // Ajusta para meio-dia para evitar problemas de fuso
-    localDate.setHours(12, 0, 0, 0)
 
-    const day = localDate.getDate().toString().padStart(2, "0")
-    const month = (localDate.getMonth() + 1).toString().padStart(2, "0")
+    // Garantir que estamos trabalhando com uma data local
+    const localDate = new Date(date)
+
+    // Ajustar para evitar problemas de fuso horário
     const year = localDate.getFullYear()
+    const month = (localDate.getMonth() + 1).toString().padStart(2, "0")
+    const day = localDate.getDate().toString().padStart(2, "0")
+
     return `${day}/${month}/${year}`
   }
 
@@ -251,7 +259,6 @@ const PsychiatryDashboard = () => {
 
   return (
     <div className="nusad-container">
-      
       <div className="filters-container">
         <div className="filter-group">
           <label className="filter-label">
@@ -265,8 +272,14 @@ const PsychiatryDashboard = () => {
                 className="date-input"
                 value={formatDateForInput(startDate)}
                 onChange={(e) => {
-                  const date = e.target.value ? new Date(e.target.value) : null
-                  setStartDate(date)
+                  if (e.target.value) {
+                    // Criar data local sem problemas de fuso horário
+                    const [year, month, day] = e.target.value.split("-")
+                    const date = new Date(year, month - 1, day, 12, 0, 0, 0)
+                    setStartDate(date)
+                  } else {
+                    setStartDate(null)
+                  }
                 }}
                 min={formatDateForInput(dateRange.min)}
                 max={formatDateForInput(endDate || dateRange.max)}
@@ -279,8 +292,14 @@ const PsychiatryDashboard = () => {
                 className="date-input"
                 value={formatDateForInput(endDate)}
                 onChange={(e) => {
-                  const date = e.target.value ? new Date(e.target.value) : null
-                  setEndDate(date)
+                  if (e.target.value) {
+                    // Criar data local sem problemas de fuso horário
+                    const [year, month, day] = e.target.value.split("-")
+                    const date = new Date(year, month - 1, day, 12, 0, 0, 0)
+                    setEndDate(date)
+                  } else {
+                    setEndDate(null)
+                  }
                 }}
                 min={formatDateForInput(startDate || dateRange.min)}
                 max={formatDateForInput(dateRange.max)}
@@ -488,8 +507,8 @@ const PsychiatryDashboard = () => {
             </div>
           </div>
 
-           {/* Evasion reasons section */}
-           <div className="specialty-details mt-6">
+          {/* Evasion reasons section */}
+          <div className="specialty-details mt-6">
             <h2>
               <BarChart2 size={20} className="icon-pink" />
               Motivos de Não Conclusão
@@ -508,8 +527,8 @@ const PsychiatryDashboard = () => {
                 <div className="grid gap-4">
                   {Object.entries(evasionReasons).map(([reason, count], index) => {
                     // Adicionar informações detalhadas para Alta Demanda
-                    const isAltaDemanda = reason === "Alta Demanda";
-                    
+                    const isAltaDemanda = reason === "Alta Demanda"
+
                     return (
                       <div key={index} className="bg-gray-50 p-4 rounded-lg">
                         <div className="flex justify-between items-center mb-2">
@@ -524,7 +543,7 @@ const PsychiatryDashboard = () => {
                             }}
                           ></div>
                         </div>
-                        
+
                         {/* Informações adicionais para Alta Demanda */}
                         {isAltaDemanda && (
                           <div className="alta-detail mt-3 p-3 bg-gray-100 rounded text-sm">
@@ -535,7 +554,7 @@ const PsychiatryDashboard = () => {
                           </div>
                         )}
                       </div>
-                    );
+                    )
                   })}
                 </div>
               ) : (
