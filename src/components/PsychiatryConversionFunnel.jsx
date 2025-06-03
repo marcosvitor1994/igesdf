@@ -1,10 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Progress } from "@/components/ui/progress"
+import { Card, CardContent, CardHeader, Typography, Box, LinearProgress, Chip, Tabs, Tab, Button, ButtonGroup } from "@mui/material"
 import { Users, Calendar, Truck, CheckCircle, XCircle, AlertTriangle } from "lucide-react"
 
 const PsychiatryConversionFunnel = () => {
@@ -16,6 +13,7 @@ const PsychiatryConversionFunnel = () => {
   })
   const [loading, setLoading] = useState(true)
   const [selectedMonth, setSelectedMonth] = useState("maio")
+  const [tabValue, setTabValue] = useState(0)
 
   useEffect(() => {
     fetchFunnelData()
@@ -173,12 +171,14 @@ const PsychiatryConversionFunnel = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Carregando dados do funil...</p>
-        </div>
-      </div>
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '256px' }}>
+        <Box sx={{ width: '100%', maxWidth: '300px', mb: 2 }}>
+          <LinearProgress />
+        </Box>
+        <Typography variant="body2" color="text.secondary">
+          Carregando dados do funil...
+        </Typography>
+      </Box>
     )
   }
 
@@ -186,165 +186,215 @@ const PsychiatryConversionFunnel = () => {
   const motivosNaoComparecimento = getMotivosNaoComparecimento()
 
   return (
-    <div className="space-y-6">
+    <Box sx={{ p: 3 }}>
       {/* Seletor de Mês */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => setSelectedMonth("abril")}
-          className={`px-4 py-2 rounded ${selectedMonth === "abril" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-        >
-          Abril
-        </button>
-        <button
-          onClick={() => setSelectedMonth("maio")}
-          className={`px-4 py-2 rounded ${selectedMonth === "maio" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-        >
-          Maio
-        </button>
-        <button
-          onClick={() => setSelectedMonth("junho")}
-          className={`px-4 py-2 rounded ${selectedMonth === "junho" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-        >
-          Junho
-        </button>
-      </div>
+      <Box sx={{ mb: 3 }}>
+        <ButtonGroup variant="contained" aria-label="month selector">
+          <Button
+            onClick={() => setSelectedMonth("abril")}
+            variant={selectedMonth === "abril" ? "contained" : "outlined"}
+          >
+            Abril
+          </Button>
+          <Button
+            onClick={() => setSelectedMonth("maio")}
+            variant={selectedMonth === "maio" ? "contained" : "outlined"}
+          >
+            Maio
+          </Button>
+          <Button
+            onClick={() => setSelectedMonth("junho")}
+            variant={selectedMonth === "junho" ? "contained" : "outlined"}
+          >
+            Junho
+          </Button>
+        </ButtonGroup>
+      </Box>
 
       {/* Funil de Conversão */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Alta Demanda</CardTitle>
-            <Users className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{rates.total}</div>
-            <p className="text-xs text-muted-foreground">Solicitações com status "Alta demanda"</p>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(4, 1fr)' }, gap: 3, mb: 4 }}>
+        <Card sx={{ minHeight: '140px' }}>
+          <CardHeader 
+            title={
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="subtitle2" component="h3">Alta Demanda</Typography>
+                <Users size={20} color="#dc2626" />
+              </Box>
+            }
+          />
+          <CardContent sx={{ pt: 0 }}>
+            <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
+              {rates.total}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Solicitações com status "Alta demanda"
+            </Typography>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Agendamentos</CardTitle>
-            <Calendar className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{rates.agendados}</div>
-            <p className="text-xs text-muted-foreground">Taxa: {rates.taxaAgendamento}%</p>
-            <Progress value={rates.taxaAgendamento} className="mt-2" />
+        <Card sx={{ minHeight: '140px' }}>
+          <CardHeader 
+            title={
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="subtitle2" component="h3">Agendamentos</Typography>
+                <Calendar size={20} color="#ea580c" />
+              </Box>
+            }
+          />
+          <CardContent sx={{ pt: 0 }}>
+            <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
+              {rates.agendados}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+              Taxa: {rates.taxaAgendamento}%
+            </Typography>
+            <LinearProgress 
+              variant="determinate" 
+              value={parseFloat(rates.taxaAgendamento)} 
+              sx={{ height: 6, borderRadius: 3 }}
+            />
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Transportes</CardTitle>
-            <Truck className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{rates.transportados}</div>
-            <p className="text-xs text-muted-foreground">Taxa: {rates.taxaTransporte}%</p>
-            <Progress value={rates.taxaTransporte} className="mt-2" />
+        <Card sx={{ minHeight: '140px' }}>
+          <CardHeader 
+            title={
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="subtitle2" component="h3">Transportes</Typography>
+                <Truck size={20} color="#2563eb" />
+              </Box>
+            }
+          />
+          <CardContent sx={{ pt: 0 }}>
+            <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
+              {rates.transportados}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+              Taxa: {rates.taxaTransporte}%
+            </Typography>
+            <LinearProgress 
+              variant="determinate" 
+              value={parseFloat(rates.taxaTransporte)} 
+              sx={{ height: 6, borderRadius: 3 }}
+            />
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Consultas Efetivadas</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{rates.consultasEfetivadas}</div>
-            <p className="text-xs text-muted-foreground">Taxa geral: {rates.taxaGeral}%</p>
-            <Progress value={rates.taxaGeral} className="mt-2" />
+        <Card sx={{ minHeight: '140px' }}>
+          <CardHeader 
+            title={
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="subtitle2" component="h3">Consultas Efetivadas</Typography>
+                <CheckCircle size={20} color="#16a34a" />
+              </Box>
+            }
+          />
+          <CardContent sx={{ pt: 0 }}>
+            <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
+              {rates.consultasEfetivadas}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+              Taxa geral: {rates.taxaGeral}%
+            </Typography>
+            <LinearProgress 
+              variant="determinate" 
+              value={parseFloat(rates.taxaGeral)} 
+              sx={{ height: 6, borderRadius: 3 }}
+            />
           </CardContent>
         </Card>
-      </div>
+      </Box>
 
-      {/* Detalhamento */}
-      <Tabs defaultValue="motivos" className="w-full">
-        <TabsList>
-          <TabsTrigger value="motivos">Motivos de Não Comparecimento</TabsTrigger>
-          <TabsTrigger value="detalhes">Detalhes do Funil</TabsTrigger>
-        </TabsList>
+      {/* Detalhamento com Tabs */}
+      <Card>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)} aria-label="detalhamento tabs">
+            <Tab label="Motivos de Não Comparecimento" />
+            <Tab label="Detalhes do Funil" />
+          </Tabs>
+        </Box>
 
-        <TabsContent value="motivos">
-          <Card>
-            <CardHeader>
-              <CardTitle>Top 5 Motivos de Não Comparecimento</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {motivosNaoComparecimento.map(([motivo, quantidade], index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm">{motivo}</span>
-                    <Badge variant="outline">{quantidade}</Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {/* Tab 1: Motivos */}
+        {tabValue === 0 && (
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Top 5 Motivos de Não Comparecimento
+            </Typography>
+            <Box sx={{ mt: 2 }}>
+              {motivosNaoComparecimento.map(([motivo, quantidade], index) => (
+                <Box key={index} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                  <Typography variant="body2">{motivo}</Typography>
+                  <Chip label={quantidade} variant="outlined" size="small" />
+                </Box>
+              ))}
+            </Box>
+          </CardContent>
+        )}
 
-        <TabsContent value="detalhes">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Status dos Transportes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {funnelData.transportes.reduce((acc, transporte) => {
-                    acc[transporte.status] = (acc[transporte.status] || 0) + 1
-                    return acc
-                  }, {})}
-                  {Object.entries(
-                    funnelData.transportes.reduce((acc, transporte) => {
-                      acc[transporte.status] = (acc[transporte.status] || 0) + 1
-                      return acc
-                    }, {}),
-                  ).map(([status, count]) => (
-                    <div key={status} className="flex items-center justify-between">
-                      <span className="text-sm">{status}</span>
-                      <Badge variant={status === "REALIZADA" ? "default" : "destructive"}>{count}</Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+        {/* Tab 2: Detalhes */}
+        {tabValue === 1 && (
+          <CardContent>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+              <Card variant="outlined">
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Status dos Transportes
+                  </Typography>
+                  <Box sx={{ mt: 2 }}>
+                    {Object.entries(
+                      funnelData.transportes.reduce((acc, transporte) => {
+                        acc[transporte.status] = (acc[transporte.status] || 0) + 1
+                        return acc
+                      }, {})
+                    ).map(([status, count]) => (
+                      <Box key={status} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2">{status}</Typography>
+                        <Chip 
+                          label={count} 
+                          color={status === "REALIZADA" ? "primary" : "error"}
+                          size="small"
+                        />
+                      </Box>
+                    ))}
+                  </Box>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Comparecimento às Consultas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      Compareceram
-                    </span>
-                    <Badge variant="default">{funnelData.consultas.filter((c) => c.efetivada).length}</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm flex items-center gap-2">
-                      <XCircle className="h-4 w-4 text-red-600" />
-                      Não compareceram
-                    </span>
-                    <Badge variant="destructive">{funnelData.consultas.filter((c) => c.cancelada).length}</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                      Com atraso
-                    </span>
-                    <Badge variant="outline">{funnelData.consultas.filter((c) => c.atraso).length}</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </div>
+              <Card variant="outlined">
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Comparecimento às Consultas
+                  </Typography>
+                  <Box sx={{ mt: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CheckCircle size={16} color="#16a34a" />
+                        <Typography variant="body2">Compareceram</Typography>
+                      </Box>
+                      <Chip label={funnelData.consultas.filter((c) => c.efetivada).length} color="primary" size="small" />
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <XCircle size={16} color="#dc2626" />
+                        <Typography variant="body2">Não compareceram</Typography>
+                      </Box>
+                      <Chip label={funnelData.consultas.filter((c) => c.cancelada).length} color="error" size="small" />
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <AlertTriangle size={16} color="#ca8a04" />
+                        <Typography variant="body2">Com atraso</Typography>
+                      </Box>
+                      <Chip label={funnelData.consultas.filter((c) => c.atraso).length} variant="outlined" size="small" />
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Box>
+          </CardContent>
+        )}
+      </Card>
+    </Box>
   )
 }
 
